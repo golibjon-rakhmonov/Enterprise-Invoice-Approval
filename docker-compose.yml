@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # 1. База данных
   postgres:
     image: postgres:15-alpine
     container_name: expense_db
@@ -14,20 +11,21 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. Файловое хранилище (S3 Mock)
+  # S3-compatible file storage
   minio:
     image: minio/minio
     container_name: expense_minio
     ports:
-      - "9000:9000" # API Port
-      - "9001:9001" # Console UI Port
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-  # 3. Keycloak Identity Provider
+
+  # Identity provider (realm "ledgerflow", see README)
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.0
     container_name: expense_keycloak
@@ -38,16 +36,14 @@ services:
     ports:
       - "8081:8080"
 
-  # 4. Утилита для создания бакета (чтобы не создавать руками)
+  # Creates the "invoices" bucket on first start. The bucket stays private.
   createbuckets:
     image: minio/mc
     depends_on:
       - minio
     entrypoint: >
-      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin; /usr/bin/mc mb myminio/invoices; /usr/bin/mc anonymous set public myminio/invoices; exit 0; "
+      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin; /usr/bin/mc mb myminio/invoices; exit 0; "
 
 volumes:
   postgres_data:
   minio_data:
-
-

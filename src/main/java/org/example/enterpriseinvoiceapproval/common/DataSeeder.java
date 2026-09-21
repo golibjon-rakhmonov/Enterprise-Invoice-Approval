@@ -25,7 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Проверяем, есть ли данные, чтобы не дублировать при перезапуске
+        // Seed only an empty database, so restarts do not duplicate data
         if (userRepository.count() > 0) {
             log.info("Database already seeded. Skipping.");
             return;
@@ -33,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
 
         log.info("Seeding initial data...");
 
-        // 1. Создаем Юзера
+        // Sample manager
         UserEntity manager = UserEntity.builder()
                 .id(UUID.randomUUID())
                 .email("manager@corp.com")
@@ -45,7 +45,7 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.save(manager);
         log.info("Saved User: {}", manager.getId());
 
-        // 2. Создаем Счет (Invoice)
+        // Sample invoice waiting for a decision
         InvoiceEntity invoice = InvoiceEntity.builder()
                 .userId(manager.getId())
                 .vendorName("JetBrains Inc")

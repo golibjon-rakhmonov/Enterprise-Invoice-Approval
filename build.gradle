@@ -10,7 +10,7 @@ description = 'Enterprise Invoice Approval'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21) // Upgrade до 21 LTS
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -24,54 +24,41 @@ repositories {
     mavenCentral()
 }
 
-// Версии для BOM (Bill of Materials)
 ext {
-    set('springModulithVersion', "1.3.0") // Актуальная версия для модулита
-    set('mapstructVersion', "1.6.0.Beta1")
+    set('springModulithVersion', "1.3.0")
 }
 
 dependencies {
-    // --- CORE ---
+    // Core
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web' // webmvc входит сюда
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation' // Для @NotNull, @Size
-    implementation 'org.springframework.boot:spring-boot-starter-actuator' // Для метрик и healthcheck (важно для Enterprise)
-
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    // --- ARCHITECTURE (Modular Monolith) ---
+    // Modular monolith: event publication registry stored in JPA
     implementation platform("org.springframework.modulith:spring-modulith-bom:${springModulithVersion}")
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
-    implementation 'org.springframework.modulith:spring-modulith-starter-jpa' // Для событий внутри транзакций
+    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
 
-    // --- DATABASE & MIGRATIONS ---
+    // Database and migrations
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.liquibase:liquibase-core'
 
-    // --- AUDIT (История изменений) ---
-    implementation 'org.hibernate.orm:hibernate-envers'
-
-    // --- FILE STORAGE (S3) ---
+    // File storage (S3-compatible)
     implementation 'io.minio:minio:8.5.7'
 
-    // --- UTILS ---
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // MAPPING (MapStruct)
-    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    // Важно: чтобы Lombok и MapStruct дружили, lombok-mapstruct-binding нужен (иногда)
-    // но в свежих версиях достаточно порядка процессоров: сначала lombok, потом mapstruct
-
-    // --- TESTING ---
+    // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.springframework.modulith:spring-modulith-starter-test' // Тесты модульности
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
     testImplementation 'org.awaitility:awaitility'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

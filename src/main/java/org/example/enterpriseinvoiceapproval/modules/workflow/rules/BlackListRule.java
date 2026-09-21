@@ -19,7 +19,7 @@ public class BlackListRule implements ApprovalRule{
             log.info("Rule triggered: Blacklist. Rejecting invoice from {}", invoice.getVendorName());
 
             invoice.setStatus(InvoiceStatus.REJECTED);
-            invoice.setRejectionReason("Vendor name  is in blacklist");
+            invoice.setRejectionReason("Vendor is on the blacklist");
 
             return true;
 

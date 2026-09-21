@@ -27,21 +27,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // Настраиваем доступ к URL
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Загружать инвойсы может любой авторизованный сотрудник
+                        // Any authenticated employee can upload invoices
                         .requestMatchers(HttpMethod.POST, "/api/v1/invoices").authenticated()
 
-                        // 2. Принимать решения (Approve/Reject) может ТОЛЬКО Менеджер
+                        // Only managers can approve or reject
                         .requestMatchers(HttpMethod.PUT, "/api/v1/invoices/*/decision").hasRole("MANAGER")
 
-                        // 3. Actuator и Swagger (если есть) оставляем открытыми для удобства
+                        // Actuator stays open (only /health is exposed by default)
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // Все остальное закрыто
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
-                // Подключаем OAuth2 Resource Server
+                // Validate Keycloak-issued JWTs
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
@@ -49,14 +48,14 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 👇 МАГИЯ: Конвертер, который учит Spring понимать роли Keycloak
+    // Maps Keycloak realm roles to Spring Security authorities
     private Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());
         return converter;
     }
 
-    // Внутренний класс для извлечения ролей
+    // Reads realm_access.roles from the token
     static class KeycloakRealmRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
@@ -66,10 +65,10 @@ public class SecurityConfig {
                 return List.of();
             }
 
-            // Достаем список ролей (например, ["MANAGER", "default-roles-ledgerflow"])
+            // e.g. ["MANAGER", "default-roles-ledgerflow"]
             List<String> roles = (List<String>) realmAccess.get("roles");
 
-            // Превращаем их в Spring Security формат: ROLE_MANAGER
+            // MANAGER -> ROLE_MANAGER
             return roles.stream()
                     .map(roleName -> "ROLE_" + roleName)
                     .map(SimpleGrantedAuthority::new)

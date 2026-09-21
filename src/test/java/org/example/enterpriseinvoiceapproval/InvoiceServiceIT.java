@@ -35,20 +35,18 @@ public class InvoiceServiceIT extends AbstractIntegrationTest {
         BigDecimal amount = new BigDecimal("150.00");
 
         // WHEN
-        // Исправлено: вызываем у переменной invoiceService (с маленькой буквы)
         InvoiceEntity result = invoiceService.createInvoice(file, "Test Vendor", amount, userEmail, userFullName);
 
         // THEN
         assertThat(result.getId()).isNotNull();
         assertThat(result.getS3FileKey()).contains("test-invoice.pdf");
 
-        // Проверяем Rule Engine (150 < 500 -> APPROVED)
+        // Rule engine: 150 < 500, so the invoice is auto-approved
         assertThat(result.getStatus()).isEqualTo(InvoiceStatus.APPROVED);
 
-        // Тут можно поправить текст, если в SmallAmountRule он отличается
         assertThat(result.getRejectionReason()).contains("Auto-approved");
 
-        // Проверяем БД
+        // Persisted
         InvoiceEntity savedInDb = invoiceRepository.findById(result.getId()).orElseThrow();
         assertThat(savedInDb.getVendorName()).isEqualTo("Test Vendor");
     }

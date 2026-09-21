@@ -5,6 +5,7 @@ spring:
   application:
     name: enterprise-invoice-approval
 
+  # Local development defaults matching docker-compose.yml
   datasource:
     url: jdbc:postgresql://localhost:5432/expense_tracker
     username: postgres
@@ -13,10 +14,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # ВАЖНО: Никакого update или create! Только проверка.
+      ddl-auto: validate  # the schema is owned by Liquibase; Hibernate only checks it
     properties:
       hibernate:
-        format_sql: true  # Чтобы видеть красивые запросы в логах
+        format_sql: true
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -27,11 +28,9 @@ spring:
         jwt:
           issuer-uri: http://localhost:8081/realms/ledgerflow
 
-# Кастомные настройки для MinIO (мы создадим класс ConfigProps для них позже)
 application:
   minio:
     url: http://localhost:9000
     access-key: minioadmin
     secret-key: minioadmin
     bucket: invoices
-    

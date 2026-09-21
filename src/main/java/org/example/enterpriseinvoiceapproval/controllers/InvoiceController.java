@@ -1,5 +1,6 @@
 package org.example.enterpriseinvoiceapproval.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.enterpriseinvoiceapproval.modules.workflow.InvoiceEntity;
 import org.example.enterpriseinvoiceapproval.modules.workflow.InvoiceService;
@@ -28,7 +29,7 @@ public class InvoiceController {
             @RequestParam("vendorName") String vendorName,
             @RequestParam("amount") BigDecimal amount,
             @AuthenticationPrincipal Jwt jwt
-    ){
+    ) {
         String email = jwt.getClaimAsString("email");
         String fullName = jwt.getClaimAsString("name");
 
@@ -39,9 +40,15 @@ public class InvoiceController {
     @PutMapping("/{id}/decision")
     public ResponseEntity<InvoiceEntity> makeDecision(
             @PathVariable UUID id,
-            @RequestBody DecisionRequest decisionRequest
+            @Valid @RequestBody DecisionRequest decisionRequest,
+            @AuthenticationPrincipal Jwt jwt
     ) {
-        InvoiceEntity updatedInvocie = invoiceService.processDecision(id, decisionRequest);
-        return ResponseEntity.ok(updatedInvocie);
+        InvoiceEntity updatedInvoice = invoiceService.processDecision(
+                id,
+                decisionRequest,
+                jwt.getClaimAsString("email"),
+                jwt.getClaimAsString("name")
+        );
+        return ResponseEntity.ok(updatedInvoice);
     }
 }

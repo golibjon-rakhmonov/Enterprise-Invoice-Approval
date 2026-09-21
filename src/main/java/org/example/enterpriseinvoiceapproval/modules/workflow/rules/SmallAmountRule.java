@@ -18,7 +18,7 @@ public class SmallAmountRule implements ApprovalRule {
     @Override
     public boolean apply(InvoiceEntity invoice) {
         if (invoice.getAmount().compareTo(LIMIT) < 0) {
-            log.info("Rule triggered: Small Amount (< 500). Auto-approving invoice: {}", invoice.getId());
+            log.info("Rule triggered: small amount (< 500). Auto-approving invoice from {}", invoice.getVendorName());
 
             invoice.setStatus(InvoiceStatus.APPROVED);
             invoice.setRejectionReason("Auto-approved by system (Amount < 500)");

@@ -38,6 +38,6 @@ public class AbstractIntegrationTest {
 
         registry.add("application.minio.access-key", () -> "minioadmin");
         registry.add("application.minio.secret-key", () -> "minioadmin");
-        registry.add("application.minio.bucket-name", () -> "test-invoices");
+        registry.add("application.minio.bucket", () -> "test-invoices");
     }
 }
